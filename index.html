@@ -1,0 +1,124 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Andrew Liu: Rendering onto deformable surface using visible ink</title>
+    <script src="css/jquery.min.js"></script>
+    <script src="css/bootstrap.min.js"></script>
+    <!-- for FF, Chrome, Opera -->
+    <link rel="shortcut icon" href="icon.png" type="image/png">
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+    <!-- Taken from CS61A header bar-->
+    <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-section">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="http://eschew.github.io">Andrew Liu</a>
+      </div>
+
+      <div class="collapse navbar-collapse" id="navbar-collapse-section">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="resources/paper.pdf">Paper</a></li>
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#algorithm">Algorithm</a></li>
+          <li><a href="#results">Results</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+<body style="background-color:lightgray">
+  <div class="container" style="box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);background-color:#f2f2f2;max-width:75%;margin-right:auto;margin-left:auto">
+    <h1 align="center">Rendering onto deformable surface using visible ink <br><small>by Andrew Liu</small></h1>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="http://imgur.com/HDqllbj.gif" class="img-responsive" alt="tjf"/>
+      <br>
+    </div>
+    <h2 id="introduction">Introduction</h2>
+    <h4 style="margin-left: auto; margin-right: auto;max-width:90%">The original inspiration for this project came from <a href='http://www.k2.t.u-tokyo.ac.jp/vision/DPM/index-e.html'>Ishikawa Watanabe Laboratory</a> when they released a demo video showcasing their high speed dynamic projection. In their implementation, they used a 1000 FPS camera to track the motion of a infrared mesh-grid ink. As of December 10th, 2016, they have not publicly released the algorithm they used to achieve the high speed results.
+      <br>
+      <br>
+    In addition to the applications mentioned in Ishikawa Watanabe Laboratory's video, these techniques can be used to do reverse template imaging. Take an unknown deformed surface with an image. Project a mesh grid onto the surface and use the inverse algorithm to get the unknown image when viewed a flat surface. 
+      <br>
+      <br>
+    I introduced a couple of extra constraints on top of replicating their results. Instead of using a high speed camera, I used an iPhone 5S as my capturing device and in place of the infrared ink I used green mesh pattern with a red-blue background. Using max value for each channel, we get maximal distinguishing power on the visible light spectrum.</h4>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="resources/templ.jpg" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Template grid</b></p>
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="resources/deform.jpg" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Deformed sample image shot on iPhone</b></p>
+    </div>
+    <h2 id="algorithm">Algorithm</h2>
+    <h4 style="margin-left: auto; margin-right: auto;max-width:90%">There are two parts of this workflow that I tried to solve. The first one is isolating and aligning the template mesh grid with the mesh grid taken from the iPhone.</h4>
+    <h3>Mesh Isolation:</h3>
+    <h4 style="margin-left: auto; margin-right: auto;max-width:90%">I approached this problem by looking at some energy function of the image. Specifically, I was looking for a function which responded high to high green pixels and penalized red-blue values everywhere else. The first half reads high for exclusively green pixels and the second penalizes hard for white pixels which also have a high green component. Then I threshold the energy function to extract the mesh grid.
+      <br>
+      <br>
+      Next I align the mean of the high response pixels and the 20th percentile x - y values. This is important for the next step when I compute a warp from one image to the other. </h4>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="http://imgur.com/0pMaFpx.gif" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Captured video of deformed surface, extracted mesh grid</b></p>
+    </div>
+    <h3>Pixel Mapping:</h3>
+        <h4 style="margin-left: auto; margin-right: auto;max-width:90%">In order to achieve the final result, we need a dense pixel mapping from one to the other. Most warping schemes use parameters to define the warp. Because the surface is deformed in highly complex ways, we would need a lot of parameters to do a parameterized warp. Instead, I use Liu, Yuen, and Torralba's <a href="https://people.csail.mit.edu/celiu/SIFTflow/">Dense SIFT Flow</a> algorithm to find a vector field that maps pixels from one image to another.</h4>
+      <div class="container" style="max-width:60%">
+        <img style="margin-left: auto; margin-right: auto;max-width:70%" src="
+        http://imgur.com/JoCskgY.gif" class="img-responsive" alt="tjf"/>
+        <br>
+        <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Pixel flow-field generated over the video taken above.</b></p>
+      </div>
+    <h2 id="results">Results</h2>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:40%" src="resources/grid3.jpg" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Rendering Professor Efros onto a mesh at a distance.</b></p>
+    </div>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="http://imgur.com/HDqllbj.gif" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Static image of the Berkeley Campanile rendered onto a surface.</b></p>
+    </div>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="http://imgur.com/JaWGEMJ.gif" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Static image of Professor Efros rendered onto the same surface.</b></p>
+    </div>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="http://imgur.com/R2baxts.gif" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Rendering onto a new surface. Some glitching of the top right corner due to parameters used in SIFT Flow.</b></p>
+    </div>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="http://imgur.com/OWrMJhk.gif" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Rendering a short video taken in Berkeley, CA</b></p>
+    </div>
+    <div class="container" style="max-width:60%">
+      <img style="margin-left: auto; margin-right: auto;max-width:70%" src="http://imgur.com/FuEkvhN.gif" class="img-responsive" alt="tjf"/>
+      <br>
+      <p align="center" style="max-width:80%;min-width:40%;margin-left: auto; margin-right: auto;"><b>Rendering a short video taken in Berkeley, CA</b></p>
+    </div>
+    <h3>Future Steps:</h3>
+    <h4 style="margin-left: auto; margin-right: auto;max-width:90%">
+    <ul>
+      <li>Devise a method for reverse imaging an unknown surface when projecting a mesh grid pattern onto it.
+      <li>Introduce rotational invariance for the mesh grid.
+      <li>Define a method for pairing points of correspondances accurately and reliably.
+      <li>With a sufficiently high FPS camera, we can do linear combinations of flow-fields at nearby time steps to produce smoother animations. With the current iPhone FPS doing linear combinations resulted in very poor results.
+      <li>Method for rendering with occlusion by additional masking based on a red-blue biased energy function.
+    </ul>
+  </h4> 
+      <h4 style="margin-left: auto; margin-right: auto;max-width:90%">Special Thanks to <a href="http://www.eecs.berkeley.edu/~efros/">Professor Efros</a> for teaching Computational Photography and <a href="https://people.eecs.berkeley.edu/~tinghuiz/">Tinghui Zhou</a> and <a href="https://people.eecs.berkeley.edu/~junyanz/">Jun-Yan Zhu</a> for helping with the project and supplying relevant literature.</h4>
+  </div>
+</body>
+</html>
